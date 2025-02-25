@@ -35,6 +35,8 @@ int ras_report_non_standard_event(struct ras_events *ras,
 				  struct ras_non_standard_event *ev);
 int ras_report_arm_event(struct ras_events *ras,
 			 struct ras_arm_event *ev);
+int ras_report_riscv_event(struct ras_events *ras,
+			   struct ras_riscv_event *ev);
 int ras_report_devlink_event(struct ras_events *ras,
 			     struct devlink_event *ev);
 int ras_report_diskerror_event(struct ras_events *ras,
@@ -74,6 +76,9 @@ static inline int ras_report_non_standard_event(struct ras_events *ras,
 { return 0; };
 static inline int ras_report_arm_event(struct ras_events *ras,
 				       struct ras_arm_event *ev)
+{ return 0; };
+static inline int ras_report_riscv_event(struct ras_events *ras,
+				         struct ras_riscv_event *ev)
 { return 0; };
 static inline int ras_report_devlink_event(struct ras_events *ras,
 					   struct devlink_event *ev)

@@ -42,6 +42,9 @@ endif
 if WITH_ARM
    rasdaemon_SOURCES += ras-arm-handler.c
 endif
+if WITH_RISCV
+   rasdaemon_SOURCES += ras-riscv-handler.c
+endif
 if WITH_MCE
    rasdaemon_SOURCES += ras-mce-handler.c mce-intel.c mce-amd.c \
 			mce-intel-p4-p6.c mce-intel-nehalem.c \

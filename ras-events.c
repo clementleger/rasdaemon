@@ -35,6 +35,7 @@
 #include "ras-non-standard-handler.h"
 #include "ras-page-isolation.h"
 #include "ras-record.h"
+#include "ras-riscv-handler.h"
 #include "trigger.h"
 
 /*
@@ -1014,6 +1015,16 @@ int handle_ras_events(int record_events, int enable_ipmitool)
 	else if (rc != EVENT_DISABLED)
 		log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
 		    "ras", "arm_event");
+#endif
+
+#ifdef HAVE_RISCV
+	rc = add_event_handler(ras, pevent, page_size, "ras", "riscv_event",
+			       ras_riscv_event_handler, NULL, RISCV_EVENT);
+	if (!rc)
+		num_events++;
+	else if (rc != EVENT_DISABLED)
+		log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
+		    "ras", "riscv_event");
 #endif
 
 	cpus = get_num_cpus(ras);

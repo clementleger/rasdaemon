@@ -38,6 +38,7 @@ my $has_mce = 0;
 
 @WITH_AER_TRUE@$has_aer = 1;
 @WITH_ARM_TRUE@$has_arm = 1;
+@WITH_RISCV_TRUE@$has_riscv = 1;
 @WITH_CXL_TRUE@$has_cxl = 1;
 @WITH_DEVLINK_TRUE@$has_devlink = 1;
 @WITH_DISKERROR_TRUE@$has_disk_errors = 1;
@@ -1804,6 +1805,26 @@ sub errors
 	    print "ARM processor events:\n$out\n";
 	} else {
 	    print "No ARM processor errors.\n\n";
+	}
+	$query_handle->finish;
+    }
+
+    # RISC-V processor riscv_event errors
+    if ($has_riscv == 1) {
+	$query = "select id, timestamp, dummy from riscv_event$conf{opt}{since} order by id";
+	$query_handle = $dbh->prepare($query);
+	$query_handle->execute();
+	$query_handle->bind_columns(\($id, $timestamp, $dummy));
+	$out = "";
+	while($query_handle->fetch()) {
+	    $out .= "$id $timestamp error: ";
+	    $out .= "dummy=$dummy, ";
+	    $out .= "\n";
+	}
+	if ($out ne "") {
+	    print "RISC-V processor events:\n$out\n";
+	} else {
+	    print "No RISCV processor errors.\n\n";
 	}
 	$query_handle->finish;
     }

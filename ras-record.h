@@ -89,6 +89,22 @@ struct ras_arm_event {
 	uint64_t phy_fault_addr;
 };
 
+struct ras_riscv_event {
+	char timestamp[64];
+	uint64_t cpu_version;
+	uint64_t cpu_vendor;
+	uint64_t cpu_architecture;
+	uint64_t hart_id;
+	int cpu;
+	uint8_t severity;
+	uint32_t err_hdr_len;
+	uint8_t *err_hdr;
+	uint32_t err_len;
+	uint8_t *err;
+	bool is_cpu_error;
+	uint32_t error_count;
+};
+
 struct devlink_event {
 	char timestamp[64];
 	const char *bus_name;
@@ -275,6 +291,9 @@ struct sqlite3_priv {
 #ifdef HAVE_ARM
 	sqlite3_stmt	*stmt_arm_record;
 #endif
+#ifdef HAVE_RISCV
+	sqlite3_stmt	*stmt_riscv_record;
+#endif
 #ifdef HAVE_DEVLINK
 	sqlite3_stmt	*stmt_devlink_event;
 #endif
@@ -320,6 +339,7 @@ int ras_store_extlog_mem_record(struct ras_events *ras,
 int ras_store_non_standard_record(struct ras_events *ras,
 				  struct ras_non_standard_event *ev);
 int ras_store_arm_record(struct ras_events *ras, struct ras_arm_event *ev);
+int ras_store_riscv_record(struct ras_events *ras, struct ras_riscv_event *ev);
 int ras_store_devlink_event(struct ras_events *ras, struct devlink_event *ev);
 int ras_store_diskerror_event(struct ras_events *ras,
 			      struct diskerror_event *ev);
@@ -358,6 +378,8 @@ static inline int ras_store_non_standard_record(struct ras_events *ras,
 						struct ras_non_standard_event *ev) { return 0; };
 static inline int ras_store_arm_record(struct ras_events *ras,
 				       struct ras_arm_event *ev) { return 0; };
+static inline int ras_store_riscv_record(struct ras_events *ras,
+					struct ras_riscv_event *ev) { return 0; };
 static inline int ras_store_devlink_event(struct ras_events *ras,
 					  struct devlink_event *ev) { return 0; };
 static inline int ras_store_diskerror_event(struct ras_events *ras,

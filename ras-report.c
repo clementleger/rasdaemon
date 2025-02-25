@@ -266,6 +266,37 @@ static int set_arm_event_backtrace(char *buf, struct ras_arm_event *ev)
 	return 0;
 }
 
+static int set_riscv_event_backtrace(char *buf, struct ras_riscv_event *ev)
+{
+	unsigned int size = MAX_BACKTRACE_SIZE;
+
+	if (!buf || !ev)
+		return -1;
+
+	while (*buf && size > 0) {
+		buf++;
+		size--;
+	}
+
+	snprintf(buf, size, "BACKTRACE="
+		"timestamp=%s\n"
+		"cpu_version=0x%lx\n"
+		"cpu_vendor=0x%lx\n"
+		"cpu_architecture=0x%lx\n"
+		"hart_id=%ld\n"
+		"cpu=%d\n"
+		"severity=%d\n",
+		ev->timestamp,
+		ev->cpu_version,
+		ev->cpu_vendor,
+		ev->cpu_architecture,
+		ev->hart_id,
+		ev->cpu,
+		ev->severity);
+
+	return 0;
+}
+
 static int set_devlink_event_backtrace(char *buf, struct devlink_event *ev)
 {
 	unsigned int size = MAX_BACKTRACE_SIZE;
@@ -750,6 +781,10 @@ static int commit_report_backtrace(int sockfd, int type, void *ev)
 		rc = set_arm_event_backtrace(buf,
 					     (struct ras_arm_event *)ev);
 		break;
+	case RISCV_EVENT:
+		rc = set_riscv_event_backtrace(buf,
+					       (struct ras_riscv_event *)ev);
+		break;
 	case DEVLINK_EVENT:
 		rc = set_devlink_event_backtrace(buf,
 						 (struct devlink_event *)ev);
@@ -975,6 +1010,46 @@ int ras_report_arm_event(struct ras_events *ras, struct ras_arm_event *ev)
 		goto arm_fail;
 
 	snprintf(buf, MAX_MESSAGE_SIZE, "REASON=%s", "ARM CPU report problem");
+	rc = write(sockfd, buf, strlen(buf) + 1);
+	if (rc < strlen(buf) + 1)
+		goto arm_fail;
+
+	rc = 0;
+
+arm_fail:
+
+	if (sockfd >= 0)
+		close(sockfd);
+
+	return rc;
+}
+
+int ras_report_riscv_event(struct ras_events *ras, struct ras_riscv_event *ev)
+{
+	char buf[MAX_MESSAGE_SIZE];
+	int sockfd = 0;
+	int rc = -1;
+
+	memset(buf, 0, sizeof(buf));
+
+	sockfd = setup_report_socket();
+	if (sockfd < 0)
+		return rc;
+
+	rc = commit_report_basic(sockfd);
+	if (rc < 0)
+		goto arm_fail;
+
+	rc = commit_report_backtrace(sockfd, RISCV_EVENT, ev);
+	if (rc < 0)
+		goto arm_fail;
+
+	snprintf(buf, MAX_MESSAGE_SIZE, "ANALYZER=%s", "rasdaemon-riscv");
+	rc = write(sockfd, buf, strlen(buf) + 1);
+	if (rc < strlen(buf) + 1)
+		goto arm_fail;
+
+	snprintf(buf, MAX_MESSAGE_SIZE, "REASON=%s", "RISCV CPU report problem");
 	rc = write(sockfd, buf, strlen(buf) + 1);
 	if (rc < strlen(buf) + 1)
 		goto arm_fail;

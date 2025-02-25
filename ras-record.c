@@ -260,6 +260,62 @@ int ras_store_arm_record(struct ras_events *ras, struct ras_arm_event *ev)
 }
 #endif
 
+/*
+ * Table and functions to handle ras:riscv
+ */
+
+ #ifdef HAVE_RISCV
+ static const struct db_fields riscv_event_fields[] = {
+		 { .name = "id",		.type = "INTEGER PRIMARY KEY" },
+		 { .name = "timestamp",		.type = "TEXT" },
+		 { .name = "cpu_version",	.type = "INTEGER" },
+		 { .name = "cpu_vendor",	.type = "INTEGER" },
+		 { .name = "cpu_architecture",	.type = "INTEGER" },
+		 { .name = "hart_id",		.type = "INTEGER" },
+		 { .name = "cpu",		.type = "INTEGER" },
+		 { .name = "severity",		.type = "INTEGER" },
+		 { .name = "err",		.type = "BLOB"	},
+ };
+
+ static const struct db_table_descriptor riscv_event_tab = {
+	 .name = "riscv_event",
+	 .fields = riscv_event_fields,
+	 .num_fields = ARRAY_SIZE(riscv_event_fields),
+ };
+
+ int ras_store_riscv_record(struct ras_events *ras, struct ras_riscv_event *ev)
+ {
+	 int rc;
+	 struct sqlite3_priv *priv = ras->db_priv;
+
+	 if (!priv || !priv->stmt_riscv_record)
+		 return 0;
+	 log(TERM, LOG_INFO, "riscv_event store: %p\n", priv->stmt_riscv_record);
+
+	 sqlite3_bind_text (priv->stmt_riscv_record,  1, ev->timestamp, -1, NULL);
+	 sqlite3_bind_int64(priv->stmt_riscv_record,  2, ev->cpu_version);
+	 sqlite3_bind_int64(priv->stmt_riscv_record,  3, ev->cpu_vendor);
+	 sqlite3_bind_int64(priv->stmt_riscv_record,  4, ev->cpu_architecture);
+	 sqlite3_bind_int64(priv->stmt_riscv_record,  5, ev->hart_id);
+	 sqlite3_bind_int  (priv->stmt_riscv_record,  6, ev->cpu);
+	 sqlite3_bind_int  (priv->stmt_riscv_record,  7, ev->severity);
+	 sqlite3_bind_blob (priv->stmt_riscv_record,  8, ev->err, ev->err_len, NULL);
+
+	 rc = sqlite3_step(priv->stmt_riscv_record);
+	 if (rc != SQLITE_OK && rc != SQLITE_DONE)
+		 log(TERM, LOG_ERR,
+		     "Failed to do riscv_event step on sqlite: error = %d\n", rc);
+	 rc = sqlite3_reset(priv->stmt_riscv_record);
+	 if (rc != SQLITE_OK && rc != SQLITE_DONE)
+		 log(TERM, LOG_ERR,
+		     "Failed reset riscv_event on sqlite: error = %d\n",
+		     rc);
+	 log(TERM, LOG_INFO, "register inserted at db\n");
+
+	 return rc;
+ }
+ #endif
+
 #ifdef HAVE_EXTLOG
 static const struct db_fields extlog_event_fields[] = {
 		{ .name = "id",			.type = "INTEGER PRIMARY KEY" },
@@ -1388,6 +1444,16 @@ int ras_mc_event_opendb(unsigned int cpu, struct ras_events *ras)
 	if (rc == SQLITE_OK) {
 		rc = ras_mc_prepare_stmt(priv, &priv->stmt_arm_record,
 					 &arm_event_tab);
+		if (rc != SQLITE_OK)
+			goto error;
+	}
+#endif
+
+#ifdef HAVE_RISCV
+	rc = ras_mc_create_table(priv, &riscv_event_tab);
+	if (rc == SQLITE_OK) {
+		rc = ras_mc_prepare_stmt(priv, &priv->stmt_riscv_record,
+					 &riscv_event_tab);
 		if (rc != SQLITE_OK)
 			goto error;
 	}

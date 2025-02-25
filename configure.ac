@@ -79,6 +79,13 @@ AS_IF([test "x$enable_arm" = "xyes" || test "x$enable_all" = "xyes"], [
 AM_CONDITIONAL([WITH_ARM], [test x$enable_arm = xyes || test x$enable_all = xyes])
 AM_COND_IF([WITH_ARM], [USE_ARM="yes"], [USE_ARM="no"])
 
+AS_IF([test "x$enable_riscv" = "xyes" || test "x$enable_all" = "xyes"], [
+  AC_DEFINE(HAVE_RISCV,1,"have RISC-V events collect")
+  AC_SUBST([WITH_RISCV])
+])
+AM_CONDITIONAL([WITH_RISCV], [test x$enable_riscv = xyes || test x$enable_all = xyes])
+AM_COND_IF([WITH_RISCV], [USE_RISCV="yes"], [USE_RISCV="no"])
+
 AC_ARG_ENABLE([mce],
     AS_HELP_STRING([--enable-mce], [enable MCE events (currently experimental)]))
 
@@ -279,6 +286,7 @@ compile time options summary
     ABRT report         : $USE_ABRT_REPORT
     HISI Kunpeng errors : $USE_HISI_NS_DECODE
     ARM events          : $USE_ARM
+    RISC-V events       : $USE_RISCV
     DEVLINK             : $USE_DEVLINK
     Disk I/O errors     : $USE_DISKERROR
     Memory Failure      : $USE_MEMORY_FAILURE
