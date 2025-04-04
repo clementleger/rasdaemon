@@ -33,7 +33,4 @@ struct ras_arm_err_info {
 int ras_arm_event_handler(struct trace_seq *s,
 			  struct tep_record *record,
 			  struct tep_event *event, void *context);
-void display_raw_data(struct trace_seq *s,
-		      const uint8_t *buf,
-		      uint32_t datalen);
 #endif

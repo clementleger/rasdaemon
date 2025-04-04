@@ -17,6 +17,7 @@
 #include "ras-non-standard-handler.h"
 #include "ras-report.h"
 #include "types.h"
+#include "utils.h"
 
 #define ARM_ERR_VALID_ERROR_COUNT BIT(0)
 #define ARM_ERR_VALID_FLAGS BIT(1)
@@ -76,26 +77,6 @@
 #define ARM_ERR_MEM_ATTRIBUTES_MASK		GENMASK(8, 0)
 #define ARM_ERR_ACCESS_MODE_SHIFT		43
 #define ARM_ERR_ACCESS_MODE_MASK		GENMASK(0, 0)
-
-void display_raw_data(struct trace_seq *s,
-		      const uint8_t *buf,
-		      uint32_t datalen)
-{
-	int i = 0, line_count = 0;
-
-	trace_seq_printf(s, "  %08x: ", i);
-	while (datalen >= 4) {
-		print_le_hex(s, buf, i);
-		i += 4;
-		datalen -= 4;
-		if (++line_count == 4) {
-			trace_seq_printf(s, "\n  %08x: ", i);
-			line_count = 0;
-		} else {
-			trace_seq_printf(s, " ");
-		}
-	}
-}
 
 static const char * const arm_proc_error_type_strs[] = {
 	"",

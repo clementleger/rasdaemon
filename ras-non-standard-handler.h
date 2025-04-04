@@ -32,8 +32,6 @@ int ras_non_standard_event_handler(struct trace_seq *s,
 				   struct tep_record *record,
 				   struct tep_event *event, void *context);
 
-void print_le_hex(struct trace_seq *s, const uint8_t *buf, int index);
-
 #ifdef HAVE_NON_STANDARD
 int register_ns_ev_decoder(struct ras_ns_ev_decoder *ns_ev_decoder);
 int ras_ns_add_vendor_tables(struct ras_events *ras);
