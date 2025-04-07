@@ -14,6 +14,11 @@
 
 #define STR(x) #x
 
+/* Older kernel (< 6.9) did not have this define */
+#ifndef __BITS_PER_LONG_LONG
+#define __BITS_PER_LONG_LONG 64
+#endif
+
 /* Please keep the macros as much as possible alined with Linux Kernel ones */
 
 /*
